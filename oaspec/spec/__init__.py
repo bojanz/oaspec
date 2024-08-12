@@ -4,6 +4,4 @@ from .spec import (
     OASpecParser,
 )
 
-__all__ = (
-    "OASpecParser",
-)
+__all__ = ("OASpecParser",)

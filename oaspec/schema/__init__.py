@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .schema import (
-    Schema,
-    build_schema
-)
+from .schema import Schema, build_schema
 
 from .exceptions import (
     OASpecParserError,

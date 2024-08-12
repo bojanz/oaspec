@@ -12,6 +12,7 @@ from .exceptions import OASpecParserError, OASpecParserWarning
 from .funcs import def_key, get_all_refs, get_def_classes, schema_hash
 from ..utils import yaml
 
+
 class Schema(object):
 
     _PRIMITIVES = {
@@ -46,7 +47,6 @@ class Schema(object):
                     self.__init__(self._raw_spec, path, self._gentle_validation)
                     return
 
-
             # print(self._raw_spec._raw_spec)
             # print(self._boolean_subschema_classes)
             # print(type(self._raw_spec).__name__)
@@ -69,11 +69,8 @@ class Schema(object):
             # Create a new object for each item in the array using the class
             # specified in the _items attribute
             self._value = [
-                self._items(
-                    item,
-                    self._generate_path("array"),
-                    self._gentle_validation
-                ) for item in spec
+                self._items(item, self._generate_path("array"), self._gentle_validation)
+                for item in spec
             ]
         elif not isinstance(spec, dict):
             self._value = deepcopy(spec)
@@ -103,7 +100,9 @@ class Schema(object):
         for prop, value in self._raw_spec.items():
             if prop in self._properties:
                 self._present_properties.add(prop)
-                self._object_properties[prop] = self._properties[prop](value, self._generate_path(prop), self._gentle_validation)
+                self._object_properties[prop] = self._properties[prop](
+                    value, self._generate_path(prop), self._gentle_validation
+                )
                 # if "ssh_keys" in self._path:
                 #     print(prop)
                 #     print(value)
@@ -124,8 +123,9 @@ class Schema(object):
                 if self._compiled_patterns[pattern].search(prop):
                     self._present_properties.add(prop)
                     # setattr(self, prop, prop_class(value))
-                    self._object_properties[prop] = prop_class(value, self._generate_path(prop), self._gentle_validation)
-
+                    self._object_properties[prop] = prop_class(
+                        value, self._generate_path(prop), self._gentle_validation
+                    )
 
         # Set additional properties by parsing every key in the spec that
         # hasn't already been parsed
@@ -138,21 +138,17 @@ class Schema(object):
 
                 self._present_properties.add(prop)
                 # setattr(self, prop, self._additional_properties(value))
-                self._object_properties[prop] = self._additional_properties(value, self._generate_path(prop), self._gentle_validation)
+                self._object_properties[prop] = self._additional_properties(
+                    value, self._generate_path(prop), self._gentle_validation
+                )
 
         for prop in self._present_properties:
             if hasattr(self.__class__, prop):
                 warning_text = (
-                    "An Schema class attribute overlaps with the mapping key \"{}\" "
+                    'An Schema class attribute overlaps with the mapping key "{}" '
                     "located at \n{}"
-                ).format(
-                    prop,
-                    self._format_path()
-                )
-                warn(
-                    warning_text,
-                    OASpecParserWarning
-                )
+                ).format(prop, self._format_path())
+                warn(warning_text, OASpecParserWarning)
 
     def _validate_property(self, prop, return_class=True):
         if prop in self._properties:
@@ -180,7 +176,6 @@ class Schema(object):
             return False, None
         return False
 
-
     def _set_object_methods(self):
         self._keys = self.__keys__
 
@@ -189,11 +184,11 @@ class Schema(object):
             raise RuntimeError("Amending a spec with another spec is not currently supported")
 
         # if self._path and self._path[-1] == "ssh_keys":
-            # print(self)
-            # print(self._id)
-            # print(self._parsing_schema)
-            # print(amendments_spec)
-            # exit()
+        # print(self)
+        # print(self._id)
+        # print(self._parsing_schema)
+        # print(amendments_spec)
+        # exit()
         if self._is_object():
             for prop, amendments in amendments_spec.items():
                 if prop in self:
@@ -213,9 +208,10 @@ class Schema(object):
                         else:
                             amendments = list(amendments["__override"])
 
-
                 self._present_properties.add(prop)
-                self._object_properties[prop] = prop_class(amendments, self._generate_path(prop), self._gentle_validation)
+                self._object_properties[prop] = prop_class(
+                    amendments, self._generate_path(prop), self._gentle_validation
+                )
         elif self._is_array():
             # print(self._generate_path("array"))
             revised_list = list()
@@ -345,12 +341,7 @@ class Schema(object):
             if idx == 0:
                 path.append(f'\t "{key}"')
             else:
-                path.append(
-                    '\t{}-> "{}"'.format(
-                        "  "*idx,
-                        key
-                    )
-                )
+                path.append('\t{}-> "{}"'.format("  " * idx, key))
 
         return "\n".join(path)
 
@@ -382,9 +373,7 @@ class Schema(object):
         elif self._is_array():
             return [item._raw() for item in self._value]
         elif self._is_object():
-            return {
-                key:val._raw() for key, val in self._object_properties.items()
-            }
+            return {key: val._raw() for key, val in self._object_properties.items()}
         else:
             # print(self._path)
             # print(self)
@@ -470,7 +459,7 @@ class Schema(object):
     #         return standard_attrs | self._object_properties.keys()
     #     else:
     #         return standard_attrs
-            # return super().__dir__()
+    # return super().__dir__()
 
     def __keys__(self):
         """Return the keys representing the properties present in this object.
@@ -495,6 +484,7 @@ class Schema(object):
 
 
 # OASchema = type("openapiObject", (Schema,), dict())
+
 
 def build_schema(schema, schema_base, schema_class, object_defs=None):
     """Recursively build the Schema tree sub-classes for an entire OAS validation schema.
@@ -523,7 +513,6 @@ def build_schema(schema, schema_base, schema_class, object_defs=None):
     if "$ref" in schema.keys():
         return object_defs[schema["$ref"]]
 
-
     # Check if Schema already has a raw schema associated with it
     if getattr(schema_class, "_raw_schema", False):
         raise RuntimeError("schema_class already has _raw_schema")
@@ -532,7 +521,6 @@ def build_schema(schema, schema_base, schema_class, object_defs=None):
     schema_class._raw_schema = raw_schema
     raw_schema.update(deepcopy(schema))
 
-
     # Add the raw schema that will be used for schema validation to the metadata.
     # In contrast to schema_class._raw_schema, the parsing schema must not contain
     # circular references (i.e. "$ref" links won't be de-referenced in-place).
@@ -540,7 +528,6 @@ def build_schema(schema, schema_base, schema_class, object_defs=None):
     # of a schema, the _parsing_schema will already be present.
     if not hasattr(schema_class, "_parsing_schema"):
         schema_class._parsing_schema = deepcopy(schema)
-
 
     # If the object contains a subschema with boolean logic, the function will create
     # a special-case class that will hold the potential subclasses and re-initialize
@@ -555,11 +542,13 @@ def build_schema(schema, schema_base, schema_class, object_defs=None):
         # Generate a Schema subclass for each defined subclass, basing the subclass
         # name on the hash of the definition
         for subschema in schema[bool_type]:
-            subschema_name = "".join([
-                schema_class.__name__,
-                "_subschema_",
-                schema_hash(subschema),
-            ])
+            subschema_name = "".join(
+                [
+                    schema_class.__name__,
+                    "_subschema_",
+                    schema_hash(subschema),
+                ]
+            )
 
             subschema_class = build_schema(
                 subschema,
@@ -570,7 +559,9 @@ def build_schema(schema, schema_base, schema_class, object_defs=None):
 
             schema_class._boolean_subschema_classes.append(subschema_class)
 
-        schema_class._raw_schema[bool_type] = [subschema._raw_schema for subschema in schema_class._boolean_subschema_classes]
+        schema_class._raw_schema[bool_type] = [
+            subschema._raw_schema for subschema in schema_class._boolean_subschema_classes
+        ]
     else:
         schema_class._boolean_subschema = False
 
@@ -585,7 +576,6 @@ def build_schema(schema, schema_base, schema_class, object_defs=None):
         schema_class._type = "enum"
         schema_class._enum = schema.get("enum")
     schema_class._required = set(schema.get("required", []))
-
 
     defs = schema.get("definitions", dict())
     # If the `definitions` property is defined in the OAS schema, process those definitions
@@ -602,7 +592,11 @@ def build_schema(schema, schema_base, schema_class, object_defs=None):
         # metadata will be added later, but bare classes are needed to allow recursive referencing
         # within definition objects.
         schema_class._definitions = {
-            def_key(key):type(key, (Schema,), {"_raw_schema": dict(), "_parsing_schema": deepcopy(value)})
+            def_key(key): type(
+                key,
+                (Schema,),
+                {"_raw_schema": dict(), "_parsing_schema": deepcopy(value)},
+            )
             for key, value in defs.items()
         }
         object_defs = schema_class._definitions
@@ -613,7 +607,6 @@ def build_schema(schema, schema_base, schema_class, object_defs=None):
         sub_definitions = get_def_classes(schema_class._parsing_schema, object_defs)
         if sub_definitions:
             schema_class._parsing_schema["definitions"] = sub_definitions
-
 
     # After bare classes have been created for all definitions, actually add metadata from schema.
     # This section will only run at the top level of the schema.
@@ -626,10 +619,7 @@ def build_schema(schema, schema_base, schema_class, object_defs=None):
             subschema_class._id = def_key(key)
 
         schema_class._definitions[def_key(key)] = build_schema(
-            value,
-            schema_base,
-            subschema_class,
-            object_defs
+            value, schema_base, subschema_class, object_defs
         )
 
     # Process the named properties defined in the OAS schema and created a subclass
@@ -646,24 +636,18 @@ def build_schema(schema, schema_base, schema_class, object_defs=None):
 
         # Create a name for the subclass based on the property name and the object
         # that it is within.
-        prop_object_name = "".join([
-            schema_class._id.split("/")[-1],
-            "_",
-            prop,
-            "Object"
-        ])
+        prop_object_name = "".join([schema_class._id.split("/")[-1], "_", prop, "Object"])
 
         subschema = build_schema(
             value,
             schema_base,
             type(prop_object_name, (schema_base,), dict()),
-            object_defs
+            object_defs,
         )
 
         schema_class._properties[prop] = subschema
         schema_class._properties[prop]._id = prop_object_name
         schema_class._raw_schema["properties"][prop] = subschema._raw_schema
-
 
     # If the object being parsed is an array type, create a class based
     # on the subschema present in the "items" key, defaulting to the "any" type.
@@ -672,10 +656,7 @@ def build_schema(schema, schema_base, schema_class, object_defs=None):
         if "items" not in schema:
             schema["items"] = {"$ref": def_key("any")}
 
-        items_object_name = "".join([
-            schema_class.__name__,
-            "_items"
-        ])
+        items_object_name = "".join([schema_class.__name__, "_items"])
 
         # print(items_object_name)
         # print(schema["items"])
@@ -689,18 +670,19 @@ def build_schema(schema, schema_base, schema_class, object_defs=None):
 
         schema_class._raw_schema["items"] = schema_class._items._raw_schema
 
-
     # Parse the patterned properties listed in the schema and create a Schema
     # subclass for each.
     pattern_props = schema.get("patternProperties", dict())
     schema_class._pattern_properties = dict()
     schema_class._compiled_patterns = dict()
     for pattern, value in pattern_props.items():
-        pattern_prop_name = "".join([
-            schema_class.__name__,
-            "_pattern_prop_",
-            schema_hash(pattern),
-        ])
+        pattern_prop_name = "".join(
+            [
+                schema_class.__name__,
+                "_pattern_prop_",
+                schema_hash(pattern),
+            ]
+        )
 
         subschema = build_schema(
             value,
@@ -714,7 +696,6 @@ def build_schema(schema, schema_base, schema_class, object_defs=None):
 
         schema_class._raw_schema["patternProperties"][pattern] = subschema._raw_schema
 
-
     # Create the subclass that will be used to create additional properties. If
     # no schema is specified, it will default to "any"
     additional_props = schema.get("additionalProperties", True)
@@ -722,10 +703,12 @@ def build_schema(schema, schema_base, schema_class, object_defs=None):
         if additional_props is True:
             additional_props = {"$ref": def_key("any")}
 
-        additional_props_name = "".join([
-            schema_class.__name__,
-            "_additional_props",
-        ])
+        additional_props_name = "".join(
+            [
+                schema_class.__name__,
+                "_additional_props",
+            ]
+        )
 
         schema_class._additional_properties = build_schema(
             additional_props,

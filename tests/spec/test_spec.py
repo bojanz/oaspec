@@ -31,16 +31,20 @@ from oaspec.utils import yaml
 import json
 from oaspec.utils import yaml
 
+
 def get_test_data(file_path):
     return Path.cwd() / "tests/data" / file_path
 
+
 def load_yaml(file_path):
-    with Path(file_path).open('r', encoding='utf-8') as f:
+    with Path(file_path).open("r", encoding="utf-8") as f:
         return yaml.load(f)
 
+
 def load_json(file_path):
-    with Path(file_path).open('r', encoding='utf-8') as f:
+    with Path(file_path).open("r", encoding="utf-8") as f:
         return json.load(f)
+
 
 class TestCreateOASpec(object):
 
@@ -65,7 +69,7 @@ class TestCreateOASpec(object):
     def test_create_object_with_yaml_raw(self):
 
         spec_path = get_test_data("petstore-3.0.1.yaml")
-        with spec_path.open('r', encoding='utf-8') as f:
+        with spec_path.open("r", encoding="utf-8") as f:
             raw_spec = f.read()
 
         oas = OASpecParser(spec=raw_spec)
@@ -77,7 +81,7 @@ class TestCreateOASpec(object):
     def test_create_object_with_json_raw(self):
 
         spec_path = get_test_data("petstore-3.0.1.json")
-        with spec_path.open('r', encoding='utf-8') as f:
+        with spec_path.open("r", encoding="utf-8") as f:
             raw_spec = f.read()
 
         oas = OASpecParser(spec=raw_spec)
@@ -89,7 +93,7 @@ class TestCreateOASpec(object):
     def test_create_object_with_json_dict(self):
 
         spec_path = get_test_data("petstore-3.0.1.json")
-        with spec_path.open('r', encoding='utf-8') as f:
+        with spec_path.open("r", encoding="utf-8") as f:
             dict_spec = json.load(f)
 
         oas = OASpecParser(spec=dict_spec)
@@ -101,7 +105,7 @@ class TestCreateOASpec(object):
     def test_create_object_with_yaml_dict(self):
 
         spec_path = get_test_data("petstore-3.0.1.yaml")
-        with spec_path.open('r', encoding='utf-8') as f:
+        with spec_path.open("r", encoding="utf-8") as f:
             dict_spec = yaml.load(f)
 
         oas = OASpecParser(spec=dict_spec)
@@ -150,7 +154,7 @@ class TestCreateOASpec(object):
 
         spec_path = get_test_data("petstore-3.0.1.yaml")
         spec_path_string = str(spec_path)
-        with spec_path.open('r', encoding='utf-8') as f:
+        with spec_path.open("r", encoding="utf-8") as f:
             raw_spec = f.read()
 
         oas = OASpecParser()
@@ -165,6 +169,7 @@ class TestCreateOASpec(object):
         with pytest.raises(TypeError):
             oas = OASpecParser(spec=list())
 
+
 class TestOASpecParser(object):
 
     def test_version_parser(self):
@@ -175,14 +180,7 @@ class TestOASpecParser(object):
         assert spec.openapi == "3.0.1"
 
     def test_invalid_version_variations(self):
-        variations = [
-            "1.0.0",
-            "2.0.0",
-            "3.0",
-            "3",
-            "3.100.0",
-            "3.0.100"
-        ]
+        variations = ["1.0.0", "2.0.0", "3.0", "3", "3.100.0", "3.0.100"]
 
         for ver in variations:
             raw_spec = f"""
@@ -193,7 +191,7 @@ class TestOASpecParser(object):
                 license:
                     name: MIT
             """
-            
+
             with pytest.raises(OASpecParserError) as excinfo:
                 oas = OASpecParser(spec=raw_spec)
                 oas.parse_spec()

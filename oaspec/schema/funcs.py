@@ -3,6 +3,7 @@
 import re
 from copy import deepcopy
 
+
 def def_key(key):
     """Compute a definition ref from a key.
 
@@ -11,6 +12,7 @@ def def_key(key):
 
     """
     return f"#/definitions/{key}"
+
 
 def get_all_refs(schema):
     """Get all ref links in a schema.
@@ -39,6 +41,7 @@ def get_all_refs(schema):
             all_refs.update(get_all_refs(item))
 
     return all_refs
+
 
 def get_def_classes(schema, def_objects, ignore_keys=None):
     """Return the definition objects represented by relative refs in a schema.
@@ -80,6 +83,7 @@ def get_def_classes(schema, def_objects, ignore_keys=None):
         def_classes.update(get_def_classes(def_classes[subkey], def_objects, def_classes.keys()))
 
     return def_classes
+
 
 def schema_hash(schema):
     """Generate a string-based hash of a schema object.

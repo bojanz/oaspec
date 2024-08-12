@@ -15,6 +15,7 @@ from ruamel.yaml.comments import CommentedMap
 from .. import schema
 from ..schema import OASpecParserError
 
+
 class OASpecParser(object):
     """The top-level object for manipulating OpenAPI specifications.
 
@@ -28,8 +29,8 @@ class OASpecParser(object):
     """
 
     def __init__(
-            self,
-            spec: Optional[Union[str, dict, MutableMapping]] = None,
+        self,
+        spec: Optional[Union[str, dict, MutableMapping]] = None,
     ):
         """Create a new OpenAPI specification control object.
 
@@ -41,10 +42,10 @@ class OASpecParser(object):
         """
 
         self._spec_file: Optional[Path] = None
-        self._schema = type("openapiObject", (schema.Schema,), dict()) #schema.OASchema
+        self._schema = type("openapiObject", (schema.Schema,), dict())  # schema.OASchema
 
         if type(spec) is str:
-            if (spec.endswith(".yaml") or spec.endswith(".yml") or spec.endswith(".json")):
+            if spec.endswith(".yaml") or spec.endswith(".yml") or spec.endswith(".json"):
                 self.load_file(spec)
             else:
                 self.load_raw(spec)
@@ -73,7 +74,10 @@ class OASpecParser(object):
 
     def _load_validation_schema(self, schema_version):
         if re.fullmatch(r"\A3\.\d{1,2}\.\d{1,2}\Z", schema_version) is None:
-            raise OASpecParserError("Invalid OpenAPI version number. oaspec only supports OpenAPI 3.*.*", "openapi")
+            raise OASpecParserError(
+                "Invalid OpenAPI version number. oaspec only supports OpenAPI 3.*.*",
+                "openapi",
+            )
 
         traversable = resources.files("oaspec.data")
         with resources.as_file(traversable) as path:
@@ -82,11 +86,10 @@ class OASpecParser(object):
                 available_versions = "\n\t- ".join([f.stem[4:] for f in path.glob("oas-*.json")])
                 raise OASpecParserError(
                     "Schema file is missing for specified version '{}'.\nSupported versions:\n\t- {}:".format(
-                        schema_version,
-                        available_versions
+                        schema_version, available_versions
                     ),
-                    "openapi"
-                    )
+                    "openapi",
+                )
 
             with spec_file.open("r", encoding="utf-8") as f:
                 self._validation_schema = json.load(f)
