@@ -324,7 +324,7 @@ class Schema(object):
         """
 
         try:
-            jsonschema.validate(spec, cls._parsing_schema)
+            jsonschema.validate(spec, cls._parsing_schema, jsonschema.Draft4Validator)
             return True
         except jsonschema.ValidationError as e:
             if raise_on_failure:

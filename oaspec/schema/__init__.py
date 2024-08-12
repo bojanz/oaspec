@@ -2,7 +2,6 @@
 
 from .schema import (
     Schema,
-    # OASchema,
     build_schema
 )
 
@@ -12,7 +11,6 @@ from .exceptions import (
 
 __all__ = (
     "Schema",
-    # "OASchema",
     "build_schema",
     "OASpecParserError",
 )

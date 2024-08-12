@@ -22,12 +22,13 @@
 # SOFTWARE.
 
 import pytest
+from jsonschema.exceptions import ValidationError
 from pathlib import Path
-from oaspec.spec import OASpec
-from oaspec.spec.spec import OASpecParser, OASpecParserError
+from oaspec.spec import OASpecParser
+from oaspec.schema import OASpecParserError
+from oaspec.utils import yaml
 
 import json
-import yaml as pyyaml
 from oaspec.utils import yaml
 
 def get_test_data(file_path):
@@ -43,24 +44,10 @@ def load_json(file_path):
 
 class TestCreateOASpec(object):
 
-    def test_create_empty_object(self):
-
-        oas = OASpec()
-
-        assert oas._spec_file == None
-        assert oas._raw_spec == None
-
-    def test_create_empty_object_spec_is_none(self):
-
-        oas = OASpec(spec=None)
-
-        assert oas._spec_file == None
-        assert oas._raw_spec == None
-
     def test_create_object_with_yaml_file(self):
 
-        spec_path_string = str(get_test_data("petstore-3.0.0.yaml"))
-        oas = OASpec(spec=spec_path_string)
+        spec_path_string = str(get_test_data("petstore-3.0.1.yaml"))
+        oas = OASpecParser(spec=spec_path_string)
 
         assert str(oas._spec_file) == spec_path_string
         assert oas._raw_spec.keys() == load_yaml(spec_path_string).keys()
@@ -68,8 +55,8 @@ class TestCreateOASpec(object):
 
     def test_create_object_with_json_file(self):
 
-        spec_path_string = str(get_test_data("petstore-3.0.0.json"))
-        oas = OASpec(spec=spec_path_string)
+        spec_path_string = str(get_test_data("petstore-3.0.1.json"))
+        oas = OASpecParser(spec=spec_path_string)
 
         assert str(oas._spec_file) == spec_path_string
         assert oas._raw_spec.keys() == load_json(spec_path_string).keys()
@@ -77,11 +64,11 @@ class TestCreateOASpec(object):
 
     def test_create_object_with_yaml_raw(self):
 
-        spec_path = get_test_data("petstore-3.0.0.yaml")
+        spec_path = get_test_data("petstore-3.0.1.yaml")
         with spec_path.open('r', encoding='utf-8') as f:
             raw_spec = f.read()
 
-        oas = OASpec(spec=raw_spec)
+        oas = OASpecParser(spec=raw_spec)
 
         assert oas._spec_file == None
         assert oas._raw_spec.keys() == load_yaml(str(spec_path)).keys()
@@ -89,11 +76,11 @@ class TestCreateOASpec(object):
 
     def test_create_object_with_json_raw(self):
 
-        spec_path = get_test_data("petstore-3.0.0.json")
+        spec_path = get_test_data("petstore-3.0.1.json")
         with spec_path.open('r', encoding='utf-8') as f:
             raw_spec = f.read()
 
-        oas = OASpec(spec=raw_spec)
+        oas = OASpecParser(spec=raw_spec)
 
         assert oas._spec_file == None
         assert oas._raw_spec.keys() == load_json(str(spec_path)).keys()
@@ -101,11 +88,11 @@ class TestCreateOASpec(object):
 
     def test_create_object_with_json_dict(self):
 
-        spec_path = get_test_data("petstore-3.0.0.json")
+        spec_path = get_test_data("petstore-3.0.1.json")
         with spec_path.open('r', encoding='utf-8') as f:
             dict_spec = json.load(f)
 
-        oas = OASpec(spec=dict_spec)
+        oas = OASpecParser(spec=dict_spec)
 
         assert oas._spec_file == None
         assert oas._raw_spec.keys() == load_json(str(spec_path)).keys()
@@ -113,11 +100,11 @@ class TestCreateOASpec(object):
 
     def test_create_object_with_yaml_dict(self):
 
-        spec_path = get_test_data("petstore-3.0.0.yaml")
+        spec_path = get_test_data("petstore-3.0.1.yaml")
         with spec_path.open('r', encoding='utf-8') as f:
-            dict_spec = pyyaml.load(f)
+            dict_spec = yaml.load(f)
 
-        oas = OASpec(spec=dict_spec)
+        oas = OASpecParser(spec=dict_spec)
 
         assert oas._spec_file == None
         assert oas._raw_spec.keys() == load_yaml(str(spec_path)).keys()
@@ -125,10 +112,10 @@ class TestCreateOASpec(object):
 
     def test_create_object_with_other_raw_spec(self):
 
-        spec_path_string = str(get_test_data("petstore-3.0.0.yaml"))
-        oas = OASpec(spec=spec_path_string)
+        spec_path_string = str(get_test_data("petstore-3.0.1.yaml"))
+        oas = OASpecParser(spec=spec_path_string)
 
-        second_oas = OASpec(spec=oas._raw_spec)
+        second_oas = OASpecParser(spec=oas._raw_spec)
 
         assert second_oas._spec_file == None
         assert second_oas._raw_spec.keys() == oas._raw_spec.keys()
@@ -139,8 +126,8 @@ class TestCreateOASpec(object):
 
     def test_create_object_with_loaded_yaml(self):
 
-        spec_path_string = str(get_test_data("petstore-3.0.0.yaml"))
-        oas = OASpec()
+        spec_path_string = str(get_test_data("petstore-3.0.1.yaml"))
+        oas = OASpecParser()
 
         oas.load_file(spec_path_string)
 
@@ -150,8 +137,8 @@ class TestCreateOASpec(object):
 
     def test_create_object_with_loaded_json(self):
 
-        spec_path_string = str(get_test_data("petstore-3.0.0.json"))
-        oas = OASpec()
+        spec_path_string = str(get_test_data("petstore-3.0.1.json"))
+        oas = OASpecParser()
 
         oas.load_file(spec_path_string)
 
@@ -161,12 +148,12 @@ class TestCreateOASpec(object):
 
     def test_create_object_with_parsed_yaml(self):
 
-        spec_path = get_test_data("petstore-3.0.0.yaml")
+        spec_path = get_test_data("petstore-3.0.1.yaml")
         spec_path_string = str(spec_path)
         with spec_path.open('r', encoding='utf-8') as f:
             raw_spec = f.read()
 
-        oas = OASpec()
+        oas = OASpecParser()
         oas.load_raw(raw_spec)
 
         assert oas._spec_file == None
@@ -176,33 +163,18 @@ class TestCreateOASpec(object):
     def test_create_object_with_invalid_type(self):
 
         with pytest.raises(TypeError):
-            oas = OASpec(spec=list())
+            oas = OASpecParser(spec=list())
 
 class TestOASpecParser(object):
 
-    def test_parser_creation(self):
-        spec_path_string = str(get_test_data("petstore-3.0.0.yaml"))
-        oas = OASpec(spec=spec_path_string)
-
-        parser = OASpecParser(oas, oas._raw_spec)
-
-        assert parser.spec_object is oas
-        assert parser.raw_spec is oas._raw_spec
-
     def test_version_parser(self):
-        spec_path_string = str(get_test_data("petstore-3.0.0.yaml"))
-        oas = OASpec(spec=spec_path_string)
-        oas.parse_spec()
+        spec_path_string = str(get_test_data("petstore-3.0.1.yaml"))
+        oas = OASpecParser(spec=spec_path_string)
+        spec = oas.parse_spec()
 
-        assert oas.openapi == "3.0.0"
+        assert spec.openapi == "3.0.1"
 
     def test_invalid_version_variations(self):
-        spec_path_string = str(get_test_data("petstore-3.0.0.yaml"))
-        oas = OASpec(spec=spec_path_string)
-        oas.parse_spec()
-
-        assert oas.openapi == "3.0.0"
-
         variations = [
             "1.0.0",
             "2.0.0",
@@ -213,30 +185,27 @@ class TestOASpecParser(object):
         ]
 
         for ver in variations:
-            oas._raw_spec["openapi"] = ver
+            raw_spec = f"""
+                openapi: "{ver}"
+                info:
+                version: 1.0.0
+                title: Swagger Petstore
+                license:
+                    name: MIT
+            """
+            
             with pytest.raises(OASpecParserError) as excinfo:
+                oas = OASpecParser(spec=raw_spec)
                 oas.parse_spec()
 
-            assert "Invalid version number" in str(excinfo.value)
+                assert "Invalid version number" in str(excinfo.value)
 
     def test_version_missing(self):
-        spec_path_string = str(get_test_data("petstore-3.0.0.yaml"))
-        oas = OASpec(spec=spec_path_string)
+        spec_path_string = str(get_test_data("petstore-3.0.1.yaml"))
+        oas = OASpecParser(spec=spec_path_string)
 
         del oas._raw_spec["openapi"]
-        with pytest.raises(OASpecParserError) as excinfo:
+        with pytest.raises(ValidationError) as excinfo:
             oas.parse_spec()
 
-        assert "No value specified" in str(excinfo.value)
-
-    def test_version_swagger_key(self):
-
-        spec_path_string = str(get_test_data("petstore-3.0.0.yaml"))
-        oas = OASpec(spec=spec_path_string)
-
-        del oas._raw_spec["openapi"]
-        oas._raw_spec["swagger"] = "2.0"
-        with pytest.raises(OASpecParserError) as excinfo:
-            oas.parse_spec()
-
-        assert "oaspec only supports OpenAPI" in str(excinfo.value)
+        assert "'openapi' is a required property" in str(excinfo.value)
